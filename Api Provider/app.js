@@ -9,14 +9,10 @@ const app = express();
 
 app.use(express.json());
 
-
 app.use("/news", newsRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URL)
   .then(() => {
     console.log("MongoDB connected successfully.");
   })
@@ -28,4 +24,3 @@ const PORT = process.env.PORT || 4848;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-

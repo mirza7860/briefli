@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   newsInteractions: {
-    type: Object, // Assuming interactions are JSON
+    type: Object,
   },
 });
 

@@ -49,62 +49,42 @@ export default function NewsFeed() {
 
   const [timeouts, setTimeouts] = useState({});
 
-  const [newsData, setNewsData] = useState([
-    {
-      id: "1",
-      title:
-        "Poll: Gender gap, enthusiasm, economy make for tight Harris-Trump race",
-      content:
-        "When Kamala Harris became the Democratic presidential nominee, the party saw a major surge in enthusiasm from its voters.",
-      url: "https://www.cbsnews.com/news/new-poll-kamala-harris-policies-trump-democratic-convention-2024/",
-      imageUrl:
-        "https://assets2.cbsnewsstatic.com/hub/i/r/2024/08/19/06d41c03-476e-48b9-849c-003923e8e183/thumbnail/1280x720/19e7fe1fbe3447f665ee93154a8e2081/0818-wn-jiang.jpg?v=29ebd300d9a3cd24077d945a46991f72",
-      sourceImg:
-        "https://res.cloudinary.com/de64bqt7n/image/upload/v1731944207/download_prev_ui_kk0nhd.png",
-      views: 100,
-      likes: 25,
-      viewCountIncreased: false,
-      viewAnimation: new Animated.Value(1),
-      likeAnimation: new Animated.Value(1),
-      category: "Politics",
-    },
-    {
-      id: "2",
-      title:
-        "Former aide H.R. McMaster on how Trump enjoys 'pitting people against each other'",
-      content:
-        "In a new book, former national security adviser H.R. McMaster describes a White House where 'everything ... was much harder than it needed to be.' McMaster was happy to serve and eager to reverse what he considered President Obama's 'weak-kneed' foreign policy. McMaster never considered Trump 'dangerous,' but the president's affinity for autocrats made him uneasy.",
-      url: "https://www.cbsnews.com/news/h-r-mcmaster-at-war-with-ourselves-my-tour-of-duty-in-the-trump-white-house/",
-      imageUrl:
-        "https://assets3.cbsnewsstatic.com/hub/i/r/2024/08/18/362f4bf5-7788-4279-a11c-aff0293b0db5/thumbnail/620x349/6f72b3fbb9a8c9043166b67b0c546c2a/trump-mcmaster-ap-17167521509605-widw.jpg?v=29ebd300d9a3cd24077d945a46991f72",
-      sourceImg:
-        "https://res.cloudinary.com/de64bqt7n/image/upload/v1723672874/news-images/h7re3x8qfzdipoxjohdq.png",
-      views: 100,
-      likes: 25,
-      viewCountIncreased: false,
-      viewAnimation: new Animated.Value(1),
-      likeAnimation: new Animated.Value(1),
-      category: "Politics",
-    },
-    {
-      id: "3",
-      title:
-        "Poll: Gender gap, enthusiasm, economy make for tight Harris-Trump race",
-      content:
-        "When Kamala Harris became the Democratic presidential nominee, the party saw a major surge in enthusiasm from its voters.",
-      url: "https://www.cbsnews.com/news/new-poll-kamala-harris-policies-trump-democratic-convention-2024/",
-      imageUrl:
-        "https://assets2.cbsnewsstatic.com/hub/i/r/2024/08/19/06d41c03-476e-48b9-849c-003923e8e183/thumbnail/1280x720/19e7fe1fbe3447f665ee93154a8e2081/0818-wn-jiang.jpg?v=29ebd300d9a3cd24077d945a46991f72",
-      sourceImg:
-        "https://res.cloudinary.com/de64bqt7n/image/upload/v1723672874/news-images/h7re3x8qfzdipoxjohdq.png",
-      views: 100,
-      likes: 26,
-      viewCountIncreased: false,
-      viewAnimation: new Animated.Value(1),
-      likeAnimation: new Animated.Value(1),
-      category: "Politics",
-    },
-  ]);
+  const [newsData, setNewsData] = useState([]);
+
+  useEffect(() => {
+    const fetchNewsData = async () => {
+      try {
+        const response = await fetch(
+          "https://api-provider-3o7t.onrender.com/news"
+        );
+        const data = await response.json();
+
+        // Load viewed and liked items from AsyncStorage
+        const viewedIds = await AsyncStorage.getItem("viewedIds");
+        const likedIds = await AsyncStorage.getItem("likedIds");
+
+        const viewedItems = viewedIds ? JSON.parse(viewedIds) : [];
+        const likedItems = likedIds ? JSON.parse(likedIds) : [];
+
+        // Transform data to match existing structure
+        const transformedData = data.map((item: any) => ({
+          ...item,
+          viewAnimation: new Animated.Value(1),
+          likeAnimation: new Animated.Value(1),
+          viewCountIncreased: viewedItems.includes(item._id),
+          liked: likedItems.includes(item._id),
+          sourceImg:
+            "https://res.cloudinary.com/de64bqt7n/image/upload/v1731944207/download_prev_ui_kk0nhd.png",
+        }));
+
+        setNewsData(transformedData);
+      } catch (error) {
+        console.error("Error fetching news:", error);
+      }
+    };
+
+    fetchNewsData();
+  }, []);
 
   useEffect(() => {
     const generateUserId = async () => {
@@ -131,30 +111,26 @@ export default function NewsFeed() {
 
       const sanitizedTitle = sanitizeTitle(title);
 
-      // Firebase reference: users/userId/newsInteractions/title
       const userReadRef = ref(
         database,
         `users/${userId}/newsInteractions/${sanitizedTitle}`
       );
 
-      // Fetch existing data for the current news article
       const snapshot = await get(userReadRef);
 
-      let updatedTimeSpent = timeSpent; // Start with the current session time
+      let updatedTimeSpent = timeSpent;
       if (snapshot.exists()) {
         const data = snapshot.val();
-        updatedTimeSpent += data.timeSpent; // Add current session time to existing time
+        updatedTimeSpent += data.timeSpent;
       }
 
-      // Update or set the new cumulative time spent in the Firebase
       await set(userReadRef, {
         newsId,
         category,
-        timeSpent: updatedTimeSpent, // Cumulative time spent
+        timeSpent: updatedTimeSpent,
       });
     }
 
-    // Reset the start time for the next interaction
     setCurrentNewsStartTime(currentTime);
   };
 
@@ -254,81 +230,127 @@ export default function NewsFeed() {
     setDropdownVisible(dropdownVisible === id ? null : id);
   };
 
-  const handleLongPress = (url: any) => {
-    Clipboard.setString(url);
+  const handleLongPress = (link: any) => {
+    Clipboard.setString(link);
     Toast.show("Link copied to clipboard!", 2000, { textColor: "blue" });
   };
 
-  const increaseViews = useCallback(
-    (id) => {
-      if (timeouts[id]) {
-        clearTimeout(timeouts[id]);
-      }
+  const increaseViews = (id) => {
+    // Trigger backend call to increment views
+    fetch(`https://api-provider-3o7t.onrender.com/news/${id}/views`, {
+      method: "POST",
+    })
+      .then((response) => response.text())
+      .catch((error) => console.error("Error updating views:", error));
 
-      const timeoutId = setTimeout(() => {
-        setNewsData((prevData) =>
-          prevData.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  views: item.views + 1,
-                  viewCountIncreased: true,
-                }
-              : item
-          )
-        );
+    // Clear previous timeout for the same news item
+    if (timeouts[id]) {
+      clearTimeout(timeouts[id]);
+    }
 
+    // Start a timeout to simulate delayed view count increment
+    const timeoutId = setTimeout(() => {
+      setNewsData((prevData) =>
+        prevData.map((item) =>
+          item._id === id
+            ? {
+                ...item,
+                views: item.views + 1,
+                viewCountIncreased: true,
+              }
+            : item
+        )
+      );
+
+      // Save viewed item to AsyncStorage
+      AsyncStorage.getItem("viewedIds").then((viewedIds) => {
+        const viewedItems = viewedIds ? JSON.parse(viewedIds) : [];
+        if (!viewedItems.includes(id)) {
+          viewedItems.push(id);
+          AsyncStorage.setItem("viewedIds", JSON.stringify(viewedItems));
+        }
+      });
+
+      // Trigger animation for the updated news item
+      const updatedItem = newsData.find((item) => item._id === id);
+      if (updatedItem) {
         Animated.sequence([
-          Animated.timing(
-            newsData.find((item) => item.id === id).viewAnimation,
-            {
-              toValue: 1.2,
-              duration: 200,
-              useNativeDriver: true,
-            }
-          ),
-          Animated.timing(
-            newsData.find((item) => item.id === id).viewAnimation,
-            {
-              toValue: 1,
-              duration: 200,
-              useNativeDriver: true,
-            }
-          ),
+          Animated.timing(updatedItem.viewAnimation, {
+            toValue: 1.2,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(updatedItem.viewAnimation, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
         ]).start();
-      }, 8000);
+      }
+    }, 8000);
 
-      setTimeouts((prev) => ({ ...prev, [id]: timeoutId }));
-    },
-    [newsData, timeouts]
+    setTimeouts((prev) => ({ ...prev, [id]: timeoutId }));
+  };
+
+  const [loadingLikes, setLoadingLikes] = useState<{ [key: string]: boolean }>(
+    {}
   );
 
   const handleLike = (id: any) => {
+    if (loadingLikes[id]) return; // Prevent multiple clicks
+
+    setLoadingLikes((prev) => ({ ...prev, [id]: true }));
+
     setNewsData((prevData) =>
       prevData.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              likes: item.likes + 1,
-              liked: true,
-            }
-          : item
+        item._id === id ? { ...item, likes: item.likes + 1, liked: true } : item
       )
     );
 
-    // Trigger like button animation
-    Animated.sequence([
-      Animated.timing(newsData.find((item) => item.id === id).likeAnimation, {
-        toValue: 1.2,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(newsData.find((item) => item.id === id).likeAnimation, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    fetch(`https://api-provider-3o7t.onrender.com/news/${id}/likes`, {
+      method: "POST",
+    })
+      .then((response) => response.text())
+      .catch((error) => {
+        console.error("Error updating likes:", error);
+
+        // Revert likes locally
+        setNewsData((prevData) =>
+          prevData.map((item) =>
+            item._id === id
+              ? { ...item, likes: item.likes - 1, liked: false }
+              : item
+          )
+        );
+      })
+      .finally(() => {
+        setLoadingLikes((prev) => ({ ...prev, [id]: false }));
+      });
+
+    AsyncStorage.getItem("likedIds").then((likedIds) => {
+      const likedItems = likedIds ? JSON.parse(likedIds) : [];
+      if (!likedItems.includes(id)) {
+        likedItems.push(id);
+        AsyncStorage.setItem("likedIds", JSON.stringify(likedItems));
+      }
+    });
+
+    // Trigger animation
+    const updatedItem = newsData.find((item) => item._id === id);
+    if (updatedItem) {
+      Animated.sequence([
+        Animated.timing(updatedItem.likeAnimation, {
+          toValue: 1.2,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(updatedItem.likeAnimation, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   };
 
   const viewabilityConfig = {
@@ -340,12 +362,12 @@ export default function NewsFeed() {
       if (viewableItems.length > 0) {
         const visibleItem = viewableItems[0].item;
         if (!visibleItem.viewCountIncreased) {
-          increaseViews(visibleItem.id);
-          setViewableItem(visibleItem.id);
+          increaseViews(visibleItem._id);
+          setViewableItem(visibleItem._id);
           trackTimeSpent(
-            visibleItem.id,
+            visibleItem._id,
             visibleItem.title,
-            visibleItem.category,
+            visibleItem.category
           );
         }
       }
@@ -378,7 +400,7 @@ export default function NewsFeed() {
             <LongPressGestureHandler
               onHandlerStateChange={({ nativeEvent }) => {
                 if (nativeEvent.state === State.ACTIVE) {
-                  handleLongPress(item.url);
+                  handleLongPress(item.link);
                 }
               }}
             >
@@ -388,7 +410,7 @@ export default function NewsFeed() {
                 {/* Image Section */}
                 <View style={styles.imageContainer}>
                   <Image
-                    source={{ uri: item.imageUrl }}
+                    source={{ uri: item.image }}
                     style={styles.image}
                     resizeMode="cover"
                   />
@@ -415,7 +437,7 @@ export default function NewsFeed() {
                     numberOfLines={7}
                     ellipsizeMode="tail"
                   >
-                    {item.content}
+                    {item.summary}
                   </Text>
                 </View>
 
@@ -472,7 +494,7 @@ export default function NewsFeed() {
                           color="white"
                           onPress={() =>
                             Share.share({
-                              message: `Check out this news: ${item.url}`,
+                              message: `Check out this news: ${item.link}`,
                             })
                           }
                           style={styles.iconStyle}
@@ -525,7 +547,7 @@ export default function NewsFeed() {
                       <ShareSvgComponent color="black" size={24} />
                     </View>
                     <View style={styles.subGroup}>
-                      <TouchableOpacity onPress={() => handleLike(item.id)}>
+                      <TouchableOpacity onPress={() => handleLike(item._id)}>
                         <Animated.View
                           style={{
                             transform: [{ scale: item.likeAnimation }],
@@ -568,7 +590,7 @@ export default function NewsFeed() {
               </Animated.View>
             </LongPressGestureHandler>
           ) : (
-            <WebView source={{ uri: item.url }} style={styles.webview} />
+            <WebView source={{ uri: item.link }} style={styles.webview} />
           )
         }
       />
@@ -582,7 +604,7 @@ export default function NewsFeed() {
           ref={flatListRef}
           data={newsData}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           pagingEnabled
           showsVerticalScrollIndicator={false}
           snapToAlignment="start"
@@ -730,8 +752,9 @@ const styles = StyleSheet.create({
   },
   sourceImage: {
     width: 50,
-    height: 25,
-    borderRadius: 5,
+    height: 40,
+    borderRadius: 4,
+    objectFit: "cover",
   },
   content: {
     fontSize: 16,

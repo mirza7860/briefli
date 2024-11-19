@@ -12,9 +12,9 @@ import HomeSvgComponent from "../../Components/HomeSvg";
 import HomeSvgComponentActive from "../../Components/HomeSvgActive";
 import Explore from "./explore";
 import UserProfile from "./user";
-import NewsFeed from "./NewsFeed";
+import NewsFeed from "./NewsFeed1";
 
-type TabNames = "home" | "explore" | "profile";
+type TabNames = "home" | "profile";
 
 const CustomNavigation: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabNames>("home");
@@ -22,7 +22,6 @@ const CustomNavigation: React.FC = () => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const tabAnimations = useRef<Record<TabNames, Animated.Value>>({
     home: new Animated.Value(1),
-    explore: new Animated.Value(1),
     profile: new Animated.Value(1),
   }).current;
 
@@ -74,8 +73,6 @@ const CustomNavigation: React.FC = () => {
     switch (activeTab) {
       case "home":
         return <NewsFeed />;
-      case "explore":
-        return <Explore />;
       case "profile":
         return <UserProfile />;
       default:
@@ -125,13 +122,6 @@ const CustomNavigation: React.FC = () => {
             name="home"
             icon={<HomeSvgComponent size={24} color="gray" />}
             activeIcon={<HomeSvgComponentActive size={24} color="#614bb3" />}
-          />
-          <TabButton
-            name="explore"
-            icon={<MaterialIcons name="explore" size={24} color="gray" />}
-            activeIcon={
-              <MaterialIcons name="explore" size={24} color="#614bb3" />
-            }
           />
           <TouchableOpacity onPress={handleRefresh} style={styles.tabItem}>
             <Animated.View style={{ transform: [{ rotate: rotation }] }}>

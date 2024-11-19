@@ -80,14 +80,15 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(custom)" />
-          </Stack>
+          <SignedIn>
+            <Stack>
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </SignedIn>
+          <SignedOut>
+            <Slot />
+            <Redirect href={"/sign-up"} />
+          </SignedOut>
         </GestureHandlerRootView>
       </ClerkLoaded>
     </ClerkProvider>

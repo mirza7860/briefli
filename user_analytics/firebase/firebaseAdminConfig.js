@@ -6,7 +6,7 @@ import { readFile } from "fs/promises"; // To load the JSON file in ES module sy
 const serviceAccount = JSON.parse(
   await readFile(
     new URL(
-      "./briefli-prod-firebase-adminsdk-j5gtz-d7e6647679.json",
+      "./briefli-prod-firebase-adminsdk-j5gtz-648683fa4e.json",
       import.meta.url
     )
   )

@@ -13,21 +13,18 @@ import { useRouter } from "expo-router";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 
 const UserProfile = () => {
-  const { isLoaded: userLoaded, user , isSignedIn } = useUser();
+  const { isLoaded: userLoaded, user, isSignedIn } = useUser();
   const { signOut, isLoaded, userId, sessionId } = useAuth();
   const router = useRouter();
-  console.log(user,isLoaded,userId,sessionId);
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.replace("/sign-in");
+      router.replace("/sign-up");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
-
-  console.log(userLoaded, isSignedIn);
 
   if (!userLoaded) {
     return (
@@ -40,54 +37,8 @@ const UserProfile = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        {/* <Image
-          source={
-            user.imageUrl
-          }
-          style={styles.profileImage}
-        /> */}
-        <Text style={styles.name}>{user?.fullName || "User"}</Text>
-        <Text style={styles.email}>
-          {user?.primaryEmailAddress?.emailAddress}
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Settings</Text>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <MaterialIcons name="person-outline" size={24} color="#333" />
-          <Text style={styles.menuText}>Edit Profile</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <MaterialIcons name="notifications-none" size={24} color="#333" />
-          <Text style={styles.menuText}>Notifications</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <MaterialIcons name="security" size={24} color="#333" />
-          <Text style={styles.menuText}>Privacy & Security</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#999" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="language-outline" size={24} color="#333" />
-          <Text style={styles.menuText}>Language</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <MaterialIcons name="help-outline" size={24} color="#333" />
-          <Text style={styles.menuText}>Help & Support</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#999" />
-        </TouchableOpacity>
+        <Text style={styles.name}>{user?.firstName || "User"}</Text>
+        <Text style={styles.email}>{user?.emailAddresses[0].emailAddress}</Text>
       </View>
 
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>

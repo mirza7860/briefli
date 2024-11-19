@@ -17,7 +17,7 @@ let db;
 const connectToMongoDB = async () => {
   try {
     await client.connect();
-    db = client.db("user_analytics"); // Replace with your database name
+    db = client.db("user_analytics");
     console.log("Connected to MongoDB.");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
@@ -27,17 +27,16 @@ const connectToMongoDB = async () => {
 // Create the collection for user data
 const createCollection = async () => {
   const userCollection = db.collection("userData");
-  await userCollection.createIndex({ userId: 1 }, { unique: true }); // Ensure userId is unique
+  await userCollection.createIndex({ userId: 1 }, { unique: true }); 
 };
 
-// Function to fetch data from Firebase and store it in MongoDB
 const fetchAndStoreData = async () => {
   console.log("Fetching data from Firebase...");
 
   try {
     const ref = database.ref("users");
     const snapshot = await ref.once("value");
-    const usersData = snapshot.val(); // JSON object with all users' data
+    const usersData = snapshot.val(); 
 
     if (usersData) {
       const userCollection = db.collection("userData");
@@ -45,7 +44,7 @@ const fetchAndStoreData = async () => {
       for (const userId in usersData) {
         const userInteractions = usersData[userId].newsInteractions;
 
-        const newsInteractionsJSON = userInteractions; // Assuming it's already an object
+        const newsInteractionsJSON = userInteractions; 
 
         const existingUser = await userCollection.findOne({ userId });
 
